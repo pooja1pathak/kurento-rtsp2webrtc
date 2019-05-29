@@ -100,8 +100,24 @@ window.addEventListener('load', function(){
 
   			  pipeline.create("WebRtcEndpoint", function(error, webRtcEndpoint){
   				if(error) return onError(error);
+				  
+	  client = yield kurentoClient(args.ws_uri);
+
+          pipeline = yield client.create('MediaPipeline');
+
+          var webRtc = yield pipeline.create('WebRtcEndpoint');
 
           setIceCandidateCallbacks(webRtcEndpoint, webRtcPeer, onError);
+	
+	  yield webRtc.connect(recorder);
+		
+	  var recorder = yield pipeline.create('RecorderEndpoint', {uri: args.file_uri});
+				  
+	  yield webRtc.connect(recorder);
+		
+	  yield webRtc.connect(webRtc);
+
+          yield recorder.record();
 
   				webRtcEndpoint.processOffer(sdpOffer, function(error, sdpAnswer){
   					if(error) return onError(error);
@@ -126,29 +142,6 @@ window.addEventListener('load', function(){
   			});
   		});
   	});
-	  
-  try{
-          client = yield kurentoClient(args.ws_uri);
-
-          pipeline = yield client.create('MediaPipeline');
-
-          var webRtc = yield pipeline.create('WebRtcEndpoint');
-          setIceCandidateCallbacks(webRtcPeer, webRtc, onError)
-
-          var recorder = yield pipeline.create('RecorderEndpoint', {uri: args.file_uri});
-
-          yield webRtc.connect(recorder);
-          yield webRtc.connect(webRtc);
-
-          yield recorder.record();
-
-          var sdpAnswer = yield webRtc.processOffer(sdpOffer);
-          webRtc.gatherCandidates(onError);
-          webRtcPeer.processAnswer(sdpAnswer)
-
-        } catch(e){
-          onError(e);
-        }
   }
 
   function stop() {
