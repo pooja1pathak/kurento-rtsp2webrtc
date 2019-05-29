@@ -183,9 +183,6 @@ window.addEventListener('load', function(){
   
   function onPlayOffer(error, sdpOffer){
     if(error) return onError(error);
-
-    co(function*(){
-      try{
 		
         var client = yield kurentoClient(args.ws_uri);
 
@@ -212,13 +209,6 @@ window.addEventListener('load', function(){
 	console.log("player.play ------")
         yield player.play()
 	console.log("Playing video ------")
-
-      }
-      catch(e)
-      {
-        onError(e);
-      }
-    })();
   }
   
 });
