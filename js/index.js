@@ -28,7 +28,7 @@ var args = getopts(location.search,
   default:
   {
     ws_uri: 'ws://' + location.hostname + ':8888/kurento',
-    file_uri: 'file:///tmp/kurento-hello-world-recording.webm',
+    file_uri: 'file:///tmp/kurento-recording.mp4',
     ice_servers: undefined
   }
 });
