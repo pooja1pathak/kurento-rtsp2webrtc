@@ -163,9 +163,6 @@ window.addEventListener('load', function(){
     }
     hideSpinner(videoOutput);
   }
-
-});
-
   
   function play(){
     showSpinner(videoOutput);
@@ -231,7 +228,9 @@ window.addEventListener('load', function(){
       }
     })();
   }
-
+  
+});
+  
 function setIceCandidateCallbacks(webRtcEndpoint, webRtcPeer, onError){
   webRtcPeer.on('icecandidate', function(candidate){
     console.log("Local icecandidate " + JSON.stringify(candidate));
