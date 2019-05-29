@@ -184,34 +184,52 @@ window.addEventListener('load', function(){
   function onPlayOffer(error, sdpOffer){
     if(error) return onError(error);
 		
-        var client = yield kurentoClient(args.ws_uri);
+        kurentoClient(args.ws_uri, function(error, kurentoClient) {
+  		if(error) return onError(error);
+	
+	kurentoClient.create("MediaPipeline", function(error, p) {
+  			if(error) return onError(error);
+	pipeline = p;
+	pipeline.create("PlayerEndpoint", {uri : args.file_uri}, function(error, player){
+  			  if(error) return onError(error);
 
-        pipeline = yield client.create('MediaPipeline');
+  	pipeline.create("WebRtcEndpoint", function(error, webRtcEndpoint){
+  				if(error) return onError(error);
+	});
+	});
 
-        var webRtc = yield pipeline.create('WebRtcEndpoint');
 	console.log("before setIceCandidateCallbacks ------")
-        setIceCandidateCallbacks(webRtc, webRtcPeer, onError)
+        setIceCandidateCallbacks(webRtcEndpoint, webRtcPeer, onError)
 	console.log("Return from setIceCandidateCallbacks ------")
-		
-        var player = yield pipeline.create('PlayerEndpoint', {uri : args.file_uri});
+	
+	webRtcEndpoint.processOffer(sdpOffer, function(error, sdpAnswer){
+  					if(error) return onError(error);
 
+            webRtcEndpoint.gatherCandidates(onError);
+
+  					webRtcPeer.processAnswer(sdpAnswer);
+  				});
+		
         player.on('EndOfStream', stop);
         console.log("Player connect ------")
-        yield player.connect(webRtc);
 	
-	console.log("processOffer ------")
-        var sdpAnswer = yield webRtc.processOffer(sdpOffer);
-	console.log("gatherCandidates ------")
-        webRtc.gatherCandidates(onError);
-	console.log("processAnswer ------")
-        webRtcPeer.processAnswer(sdpAnswer);
+	player.connect(webRtcEndpoint, function(error){
+  					if(error) return onError(error);
 
-	console.log("player.play ------")
-        yield player.play()
-	console.log("Playing video ------")
+  					console.log("PlayerEndpoint-->WebRtcEndpoint connection established");
+
+  					player.play(function(error){
+  					  if(error) return onError(error);
+
+  					  console.log("Player playing ...");
+  					});
+  				});
+	
   }
   
 });
+	}
+		      });
   
 function setIceCandidateCallbacks(webRtcEndpoint, webRtcPeer, onError){
   webRtcPeer.on('icecandidate', function(candidate){
