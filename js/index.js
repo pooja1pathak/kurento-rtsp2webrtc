@@ -125,17 +125,17 @@ window.addEventListener('load', function(){
   					  console.log("Player playing ...");
   					});
   				});
-				recorder.connect(webRtcEndpoint, function(error){
-  					if(error) return onError(error);
+				//recorder.connect(webRtcEndpoint, function(error){
+  					//if(error) return onError(error);
 
-  					console.log("RecorderEndpoint-->WebRtcEndpoint connection established");
+  					//console.log("RecorderEndpoint-->WebRtcEndpoint connection established");
 
-  					recorder.record(function(error){
-  					  if(error) return onError(error);
+  					//recorder.record(function(error){
+  					  //if(error) return onError(error);
 
-  					  console.log("Recorder recording ...");
-  					});
-  				});
+  					  //console.log("Recorder recording ...");
+  					//});
+  				//});
   			});
 		 	});
   			});
