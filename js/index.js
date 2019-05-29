@@ -28,6 +28,7 @@ var args = getopts(location.search,
   default:
   {
     ws_uri: 'ws://' + location.hostname + ':8888/kurento',
+    file_uri: 'file:///tmp/kurento-hello-world-recording.webm',
     ice_servers: undefined
   }
 });
@@ -53,6 +54,10 @@ window.addEventListener('load', function(){
 
   stopButton = document.getElementById('stop');
   stopButton.addEventListener('click', stop);
+	
+  playButton = document.getElementById('play');
+  playButton.addEventListener('click', play);
+
 
   function start() {
   	if(!address.value){
@@ -121,6 +126,29 @@ window.addEventListener('load', function(){
   			});
   		});
   	});
+	  
+  try{
+          client = yield kurentoClient(args.ws_uri);
+
+          pipeline = yield client.create('MediaPipeline');
+
+          var webRtc = yield pipeline.create('WebRtcEndpoint');
+          setIceCandidateCallbacks(webRtcPeer, webRtc, onError)
+
+          var recorder = yield pipeline.create('RecorderEndpoint', {uri: args.file_uri});
+
+          yield webRtc.connect(recorder);
+          yield webRtc.connect(webRtc);
+
+          yield recorder.record();
+
+          var sdpAnswer = yield webRtc.processOffer(sdpOffer);
+          webRtc.gatherCandidates(onError);
+          webRtcPeer.processAnswer(sdpAnswer)
+
+        } catch(e){
+          onError(e);
+        }
   }
 
   function stop() {
@@ -137,6 +165,72 @@ window.addEventListener('load', function(){
   }
 
 });
+
+  
+  function play(){
+    showSpinner(videoOutput);
+
+    var options =
+    {
+      remoteVideo: videoOutput
+    }
+
+    if (args.ice_servers) {
+      console.log("Use ICE servers: " + args.ice_servers);
+      options.configuration = {
+        iceServers : JSON.parse(args.ice_servers)
+      };
+    } else {
+      console.log("Use freeice")
+    }
+
+    webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerRecvonly(options, function(error)
+    {
+      if(error) return onError(error)
+
+      this.generateOffer(onPlayOffer)
+    });
+  }
+  
+  function onPlayOffer(error, sdpOffer){
+    if(error) return onError(error);
+
+    co(function*(){
+      try{
+		
+        var client = yield kurentoClient(args.ws_uri);
+
+        pipeline = yield client.create('MediaPipeline');
+
+        var webRtc = yield pipeline.create('WebRtcEndpoint');
+	console.log("before setIceCandidateCallbacks ------")
+        setIceCandidateCallbacks(webRtc, webRtcPeer, onError)
+	console.log("Return from setIceCandidateCallbacks ------")
+		
+        var player = yield pipeline.create('PlayerEndpoint', {uri : args.file_uri});
+
+        player.on('EndOfStream', stop);
+        console.log("Player connect ------")
+        yield player.connect(webRtc);
+	
+	console.log("processOffer ------")
+        var sdpAnswer = yield webRtc.processOffer(sdpOffer);
+	console.log("gatherCandidates ------")
+        webRtc.gatherCandidates(onError);
+	console.log("processAnswer ------")
+        webRtcPeer.processAnswer(sdpAnswer);
+
+	console.log("player.play ------")
+        yield player.play()
+	console.log("Playing video ------")
+
+      }
+      catch(e)
+      {
+        onError(e);
+      }
+    })();
+  }
 
 function setIceCandidateCallbacks(webRtcEndpoint, webRtcPeer, onError){
   webRtcPeer.on('icecandidate', function(candidate){
