@@ -87,7 +87,7 @@ window.addEventListener('load', function(){
   function onOffer(error, sdpOffer){
     if(error) return onError(error);
 
-  	kurentoClient(args.ws_uri, function(error, kurentoClient) {
+  	client = yield kurentoClient(args.ws_uri, function(error, kurentoClient) {
   		if(error) return onError(error);
 
   		kurentoClient.create("MediaPipeline", function(error, p) {
@@ -100,8 +100,6 @@ window.addEventListener('load', function(){
 
   			  pipeline.create("WebRtcEndpoint", function(error, webRtcEndpoint){
   				if(error) return onError(error);
-				  
-	  client = yield kurentoClient(args.ws_uri);
 
           pipeline = yield client.create('MediaPipeline');
 
