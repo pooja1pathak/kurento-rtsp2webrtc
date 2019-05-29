@@ -87,7 +87,7 @@ window.addEventListener('load', function(){
   function onOffer(error, sdpOffer){
     if(error) return onError(error);
 
-  	client = yield kurentoClient(args.ws_uri, function(error, kurentoClient) {
+  	kurentoClient(args.ws_uri, function(error, kurentoClient) {
   		if(error) return onError(error);
 
   		kurentoClient.create("MediaPipeline", function(error, p) {
@@ -100,22 +100,11 @@ window.addEventListener('load', function(){
 
   			  pipeline.create("WebRtcEndpoint", function(error, webRtcEndpoint){
   				if(error) return onError(error);
-
-          pipeline = yield client.create('MediaPipeline');
-
-          var webRtc = yield pipeline.create('WebRtcEndpoint');
+				  
+		          pipeline.create("RecorderEndpoint", {uri: args.file_uri}, function(error, recorder){
+  				if(error) return onError(error);
 
           setIceCandidateCallbacks(webRtcEndpoint, webRtcPeer, onError);
-	
-	  yield webRtc.connect(recorder);
-		
-	  var recorder = yield pipeline.create('RecorderEndpoint', {uri: args.file_uri});
-				  
-	  yield webRtc.connect(recorder);
-		
-	  yield webRtc.connect(webRtc);
-
-          yield recorder.record();
 
   				webRtcEndpoint.processOffer(sdpOffer, function(error, sdpAnswer){
   					if(error) return onError(error);
@@ -136,7 +125,19 @@ window.addEventListener('load', function(){
   					  console.log("Player playing ...");
   					});
   				});
+				recorder.connect(webRtcEndpoint, function(error){
+  					if(error) return onError(error);
+
+  					console.log("RecorderEndpoint-->WebRtcEndpoint connection established");
+
+  					recorder.record(function(error){
+  					  if(error) return onError(error);
+
+  					  console.log("Recorder recording ...");
+  					});
+  				});
   			});
+		 	});
   			});
   		});
   	});
