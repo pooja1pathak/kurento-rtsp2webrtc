@@ -125,14 +125,6 @@ window.addEventListener('load', function(){
   					  console.log("Player playing ...");
 					  
   					});
-					recorder.connect(webRtcEndpoint, function(error){
-						  if(error) return onError(error);
-						  console.log("RecorderEndpoint-->WebRtcEndpoint connection established");
-						  recorder.record(function(error){
-							  if(error) return onError(error);
-							  console.log("Recorder recording ...");
-						});
-					  });
   				});
 				//recorder.connect(webRtcEndpoint, function(error){
   					//if(error) return onError(error);
