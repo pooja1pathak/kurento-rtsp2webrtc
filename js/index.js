@@ -45,7 +45,7 @@ window.addEventListener('load', function(){
   console = new Console('console', console);
 	var videoOutput = document.getElementById('videoOutput');
 	var address = document.getElementById('address');
-	address.value = 'http://files.kurento.org/video/puerta-del-sol.ts';
+	address.value = 'rtsp://172.30.65.235:554/11';
   var pipeline;
   var webRtcPeer;
 
@@ -123,12 +123,16 @@ window.addEventListener('load', function(){
   					  if(error) return onError(error);
 
   					  console.log("Player playing ...");
-					  
-  					});
-					recorder.record(function(error){
+					recorder.connect(webRtcEndpoint, function(error){
+						  if(error) return onError(error);
+						  console.log("RecorderEndpoint-->WebRtcEndpoint connection established");
+						  recorder.record(function(error){
 							  if(error) return onError(error);
 							  console.log("Recorder recording ...");
 						});
+					  });
+					  
+  					});
   				});
 				//recorder.connect(webRtcEndpoint, function(error){
   					//if(error) return onError(error);
